@@ -26,9 +26,12 @@ SOFTWARE.
 package virustotal
 
 import (
+        "net/url"
+        "fmt"
 	"bytes"
 	"encoding/json"
 	"io"
+        "strings"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -39,15 +42,50 @@ type VirusTotal struct {
 	apikey string
 }
 
+type VirusTotalResponse struct {
+	ResponseCode int    `json:"response_code"`
+	Message      string `json:"verbose_msg"`
+}
+
 type ScanResponse struct {
+        VirusTotalResponse
+
 	ScanId       string `json:"scan_id"`
 	Sha1         string `json:"sha1"`
 	Resource     string `json:"resource"`
-	ResponseCode int    `json:"response_code"`
 	Sha256       string `json:"sha256"`
 	Permalink    string `json:"permalink"`
 	Md5          string `json:"md5"`
-	Message      string `json:"verbose_msg"`
+}
+
+func (sr *ScanResponse) String() string {
+    return fmt.Sprintf("scanid: %s, resource: %s, permalink: %s, md5: %s", sr.ScanId, sr.Resource, sr.Permalink, sr.Md5)
+}
+
+type RescanResponse struct {
+    ScanResponse
+}
+
+func (sr *RescanResponse) String() string {
+    return fmt.Sprintf("scanid: %s, resource: %s, permalink: %s, md5: %s", sr.ScanId, sr.Resource, sr.Permalink, sr.Md5)
+}
+
+type DetectedUrl struct {
+    ScanDate string `json:"scan_date"`
+    Url string `json:"url"`
+    Positives int `json:"positives"`
+    Total int `json:"total"`
+}
+
+type Resolution struct {
+    LastResolved string `json:"last_resolved"`
+    Hostname string `json:"hostname"`
+}
+
+type IpAddressReportResponse struct {
+    VirusTotalResponse
+    Resolutions []Resolution  `json:"resolutions"`
+    DetectedUrls []DetectedUrl `json:"detected_urls"`
 }
 
 func NewVirusTotal(apikey string) (*VirusTotal, error) {
@@ -55,12 +93,60 @@ func NewVirusTotal(apikey string) (*VirusTotal, error) {
 	return vt, nil
 }
 
+func (vt *VirusTotal) IpAddressReport(ip string) (*IpAddressReportResponse, error) {
+    u, err := url.Parse("http://www.virustotal.com/vtapi/v2/ip-address/report")
+    u.RawQuery = url.Values{"apikey": {vt.apikey}, "ip": {ip}}.Encode()
+
+    resp, err := http.Get(u.String())
+
+    if err != nil {
+            return nil, err
+    }
+
+    defer resp.Body.Close()
+
+    contents, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+            return nil, err
+    }
+
+    var ipAddressResponse = &IpAddressReportResponse{}
+
+    err = json.Unmarshal(contents, &ipAddressResponse)
+
+    return ipAddressResponse, err
+}
+
+
+func (vt *VirusTotal) Rescan(hash []string) (*RescanResponse, error) {
+    resource := strings.Join(hash, ",")
+
+    resp, err := http.PostForm("https://www.virustotal.com/vtapi/v2/file/rescan", url.Values{"apikey": {vt.apikey}, "resource": {resource}})
+
+    if err != nil {
+            return nil, err
+    }
+
+    defer resp.Body.Close()
+
+    contents, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+            return nil, err
+    }
+
+    var rescanResponse = &RescanResponse{}
+
+    err = json.Unmarshal(contents, &rescanResponse)
+
+    return rescanResponse, err
+}
+
 func (vt *VirusTotal) Scan(path string, file io.Reader) (*ScanResponse, error) {
-	extraParams := map[string]string{
+	params := map[string]string{
 		"apikey": vt.apikey,
 	}
 
-	request, err := newfileUploadRequest("http://www.virustotal.com/vtapi/v2/file/scan", extraParams, path, file)
+	request, err := newfileUploadRequest("http://www.virustotal.com/vtapi/v2/file/scan", params, path, file)
 
 	if err != nil {
 		return nil, err

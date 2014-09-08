@@ -15,11 +15,10 @@ func main() {
 	fmt.Println("----------------------------------------------------")
 
 	apikey := flag.String("apikey", "", "the api key of virustotal")
+	debug := flag.Bool("debug", false, "debug")
 
 	flag.Parse()
 
-	fmt.Println("Usage:")
-	fmt.Println("go run ./bin/vt.go --apikey {key} {file} {file} ...")
 	if *apikey == "" {
 		fmt.Println("API key not set")
 		return
@@ -30,23 +29,60 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, path := range flag.Args() {
-		fmt.Printf("Uploading %s to VirusTotal: ", path)
+        if flag.Arg(0) == "scan" {
+            for _, path := range flag.Args()[1:] {
+                    fmt.Printf("Uploading %s to VirusTotal: ", path)
 
-		file, err := os.Open(path)
+                    file, err := os.Open(path)
 
-		if err != nil {
-			log.Fatal(err)
-		}
+                    if err != nil {
+                            log.Fatal(err)
+                    }
 
-		defer file.Close()
+                    defer file.Close()
 
-		result, err := vt.Scan(path, file)
+                    result, err := vt.Scan(path, file)
 
-		if err != nil {
-			log.Fatal(err)
-		}
+                    if err != nil {
+                            log.Fatal(err)
+                    }
 
-		fmt.Printf("%s\n", result.Message)
-	}
+                    fmt.Printf("%s\n", result.Message)
+
+                    if (*debug) {
+                        fmt.Println(result)
+                    }
+            }
+        } else if flag.Arg(0) == "rescan" {
+            result, err := vt.Rescan(flag.Args()[1:])
+
+            if err != nil {
+                    log.Fatal(err)
+            }
+
+            fmt.Printf("%s\n", result.Message)
+
+            if (*debug) {
+                fmt.Println(result)
+            }
+        } else if flag.Arg(0) == "ipaddress" {
+            result, err := vt.IpAddressReport(flag.Args()[1])
+
+            if err != nil {
+                    log.Fatal(err)
+            }
+
+            fmt.Printf("%s\n", result.Message)
+
+            if (*debug) {
+                fmt.Println(result)
+            }
+        } else {
+            fmt.Println("Usage:")
+            fmt.Println("")
+            fmt.Println("go run ./bin/vt.go --apikey {key} scan {file} {file} ...")
+            fmt.Println("go run ./bin/vt.go --apikey {key} rescan {hash} {hash} ...")
+            fmt.Println("go run ./bin/vt.go --apikey {key} ipaddress 90.156.201.27")
+        }            
+
 }
