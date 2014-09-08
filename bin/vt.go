@@ -14,7 +14,7 @@ func main() {
 	fmt.Println("Made with <3 by DutchCoders (http://dutchcoders.io/)")
 	fmt.Println("----------------------------------------------------")
 
-	apikey := flag.String("apikey", "", "the api key of virustotal")
+	apikey := flag.String("apikey", os.GetEnv("VIRUSTOTAL_APIKEY"), "the api key of virustotal")
 	debug := flag.Bool("debug", false, "debug")
 
 	flag.Parse()
@@ -67,6 +67,18 @@ func main() {
             }
         } else if flag.Arg(0) == "ipaddress" {
             result, err := vt.IpAddressReport(flag.Args()[1])
+
+            if err != nil {
+                    log.Fatal(err)
+            }
+
+            fmt.Printf("%s\n", result.Message)
+
+            if (*debug) {
+                fmt.Println(result)
+            }
+        } else if flag.Arg(0) == "domain" {
+            result, err := vt.DomainReport(flag.Args()[1])
 
             if err != nil {
                     log.Fatal(err)

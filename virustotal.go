@@ -88,9 +88,39 @@ type IpAddressReportResponse struct {
     DetectedUrls []DetectedUrl `json:"detected_urls"`
 }
 
+type DomainReportResponse struct {
+    VirusTotalResponse
+    Resolutions []Resolution  `json:"resolutions"`
+    DetectedUrls []DetectedUrl `json:"detected_urls"`
+}
+
 func NewVirusTotal(apikey string) (*VirusTotal, error) {
 	vt := &VirusTotal{apikey: apikey}
 	return vt, nil
+}
+
+func (vt *VirusTotal) DomainReport(domain string) (*DomainReportResponse, error) {
+    u, err := url.Parse("http://www.virustotal.com/vtapi/v2/domain/report")
+    u.RawQuery = url.Values{"apikey": {vt.apikey}, "domain": {domain}}.Encode()
+
+    resp, err := http.Get(u.String())
+
+    if err != nil {
+            return nil, err
+    }
+
+    defer resp.Body.Close()
+
+    contents, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+            return nil, err
+    }
+
+    var domainReportResponse = &DomainReportResponse{}
+
+    err = json.Unmarshal(contents, &domainReportResponse)
+
+    return domainReportResponse, err
 }
 
 func (vt *VirusTotal) IpAddressReport(ip string) (*IpAddressReportResponse, error) {
@@ -110,11 +140,11 @@ func (vt *VirusTotal) IpAddressReport(ip string) (*IpAddressReportResponse, erro
             return nil, err
     }
 
-    var ipAddressResponse = &IpAddressReportResponse{}
+    var ipAddressReportResponse = &IpAddressReportResponse{}
 
-    err = json.Unmarshal(contents, &ipAddressResponse)
+    err = json.Unmarshal(contents, &ipAddressReportResponse)
 
-    return ipAddressResponse, err
+    return ipAddressReportResponse, err
 }
 
 
