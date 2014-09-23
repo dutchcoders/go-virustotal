@@ -37,7 +37,7 @@ import (
 func main() {
 	fmt.Println("go-virustotal: golang implementation of virustotal api")
 	fmt.Println("")
-	fmt.Println("Made with <3 by DutchCoders (http://dutchcoders.io/)")
+	fmt.Println("Made with <3 by @DutchCoders (http://dutchcoders.io/)")
 	fmt.Println("----------------------------------------------------")
 
 	apikey := flag.String("apikey", os.Getenv("VIRUSTOTAL_APIKEY"), "the api key of virustotal")
