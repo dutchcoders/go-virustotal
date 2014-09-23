@@ -6,9 +6,6 @@ VirusTotal public api interface implementation in Golang.
 [![GoDoc](https://godoc.org/github.com/dutchcoders/go-virustotal?status.svg)](https://godoc.org/github.com/dutchcoders/go-virustotal)
 [![Build Status](https://travis-ci.org/dutchcoders/go-virustotal.svg?branch=master)](https://travis-ci.org/dutchcoders/go-virustotal)
 
-
-[![GoDoc](https://godoc.org/github.com/dutchcoders/go-virustotal?status.svg)](https://godoc.org/github.com/dutchcoders/go-virustotal)
-
 Usage
 =====
 
