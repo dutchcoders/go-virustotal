@@ -7,6 +7,8 @@ VirusTotal public api interface implementation in Golang.
 [![Build Status](https://travis-ci.org/dutchcoders/go-virustotal.svg?branch=master)](https://travis-ci.org/dutchcoders/go-virustotal)
 
 
+[![GoDoc](https://godoc.org/github.com/dutchcoders/go-virustotal?status.svg)](https://godoc.org/github.com/dutchcoders/go-virustotal)
+
 Usage
 =====
 
@@ -23,4 +25,17 @@ go run ./bin/vt.go --apikey {key} (--debug) domain 027.ru
 go run ./bin/vt.go --apikey {key} (--debug) --resource 99017f6eebbac24f351415dd410d522d comment "How to disinfect you from this file... #disinfect #zbot"
 ```
 
+## Contributions
 
+Contributions are welcome.
+
+## Creators 
+
+**Remco Verhoef**
+- <https://twitter.com/remco_verhoef>
+
+- <https://twitter.com/dutchcoders>
+
+## Copyright and license
+
+Code and documentation copyright 2011-2014 Remco Verhoef. Code released under [the MIT license](LICENSE). 
